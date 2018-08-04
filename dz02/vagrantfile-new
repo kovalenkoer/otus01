@@ -1,0 +1,42 @@
+hosts = [ { name: 'server1', disk1: './server1disk1.vdi', disk2: 'server1disk2.vdi', disk3: 'server1disk3.vdi', disk4: 'server1disk4.vdi'}]
+
+Vagrant.configure("2") do |config|
+
+  config.vm.provider :virtualbox do |vb|
+   vb.customize ["storagectl", :id, "--add", "sata", "--name", "SATA" , "--portcount", 2, "--hostiocache", "on"]
+  end
+
+  hosts.each do |host|
+
+    config.vm.define host[:name] do |node|
+      node.vm.hostname = host[:name]
+      node.vm.box = "centos/7"
+      node.vm.network :public_network
+      node.vm.provider :virtualbox do |vb|
+        vb.name = host[:name]
+        vb.customize ['createhd', '--filename', host[:disk1], '--size', 2 * 1024]
+        vb.customize ['createhd', '--filename', host[:disk2], '--size', 2 * 1024]
+        vb.customize ['createhd', '--filename', host[:disk3], '--size', 2 * 1024]
+        vb.customize ['createhd', '--filename', host[:disk4], '--size', 2 * 1024]
+        vb.customize ['storageattach', :id, '--storagectl', "SATA", '--port', 1, '--device', 0, '--type', 'hdd', '--medium', host[:disk1] ]
+        vb.customize ['storageattach', :id, '--storagectl', "SATA", '--port', 2, '--device', 0, '--type', 'hdd', '--medium', host[:disk2] ]
+        vb.customize ['storageattach', :id, '--storagectl', "SATA", '--port', 3, '--device', 0, '--type', 'hdd', '--medium', host[:disk3] ]
+        vb.customize ['storageattach', :id, '--storagectl', "SATA", '--port', 4, '--device', 0, '--type', 'hdd', '--medium', host[:disk4] ]
+       node.vm.provision "shell", inline: <<-SHELL
+	      sudo yum install -y net-tools mdadm smartmontools hdparm gdisk
+              sudo  mdadm --create --verbose /dev/md0 --level=5 --raid-devices=4 /dev/sd[b-e]
+              sudo cat /proc/mdstat
+              sudo bash -c "mdadm --detail --scan > /etc/mdadm.conf"
+              sudo parted --script /dev/md0 mklabel gpt mkpart primary ext4 1MiB 200MiB mkpart primary ext4 200MiB 400MB mkpart primary ext4 400MiB 600MB mkpart primary ext4 600MiB 800MB mkpart primary ext4 800MiB 1000MB
+              sudo printf 'n\n\n\n\n\nw\ny\n' | gdisk /dev/md0p1
+              sudo printf 'n\n\n\n\n\nw\ny\n' | gdisk /dev/md0p2
+              sudo printf 'n\n\n\n\n\nw\ny\n' | gdisk /dev/md0p3
+              sudo printf 'n\n\n\n\n\nw\ny\n' | gdisk /dev/md0p4
+              sudo printf 'n\n\n\n\n\nw\ny\n' | gdisk /dev/md0p5
+  	  SHELL
+      end
+    end
+
+  end
+
+end
