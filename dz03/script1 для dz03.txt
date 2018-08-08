@@ -30,7 +30,7 @@ parted:
 Удаляем партиции (parted) sda1, sda
 Конвертируем диск sda из GPT в MBR
 
-vgextend VolGroup00 /dev/sdф  # добавляем в VG еще один диск
+vgextend VolGroup00 /dev/sda  # добавляем в VG еще один диск
 lvcreate -L 8G -m1 -n var VolGroup00 # создаем зеркало для var
 vgchange -ay
 mkfs.xfs /dev/VolGroup00/var
