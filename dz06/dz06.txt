@@ -65,8 +65,24 @@ NEXT                          LEFT     LAST                          PASSED    U
 Пт 2018-08-17 11:44:30 MSK  6s ago   Пт 2018-08-17 11:44:36 MSK  51ms ago  logwatch.timer               logwatch.service
 Сб 2018-08-18 11:27:25 MSK  23h left Пт 2018-08-17 11:27:25 MSK  17min ago systemd-tmpfiles-clean.timer systemd-tmpfiles-clean.service
 n/a                           n/a      n/a                           n/a       systemd-readahead-done.timer systemd-readahead-done.service
+[root@localhost ~]# systemctl -l status logwatch
+● logwatch.service - logwatch
+   Loaded: loaded (/etc/systemd/system/logwatch.service; enabled; vendor preset: disabled)
+   Active: inactive (dead) since Пт 2018-08-17 11:51:08 MSK; 10s ago
+  Process: 21028 ExecStart=/bin/bash /root/logwatch.sh (code=exited, status=0/SUCCESS)
+ Main PID: 21028 (code=exited, status=0/SUCCESS)
 
-
+авг 17 11:51:08 localhost.localdomain bash[21028]: 14.139.241.219 - - [13/Aug/2018:11:46:00 +0200] "GET /apache-log/access.log HTTP/1.1" 206 67064 "http://www.almhuette-raith.at/apache-log/" "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36" "-"
+авг 17 11:51:08 localhost.localdomain bash[21028]: 14.139.241.219 - - [13/Aug/2018:11:46:00 +0200] "GET /apache-log/access.log HTTP/1.1" 206 67064 "http://www.almhuette-raith.at/apache-log/" "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36" "-"
+авг 17 11:51:08 localhost.localdomain bash[21028]: 14.139.241.219 - - [13/Aug/2018:11:46:00 +0200] "GET /apache-log/access.log HTTP/1.1" 206 64128 "http://www.almhuette-raith.at/apache-log/" "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36" "-"
+авг 17 11:51:08 localhost.localdomain bash[21028]: 14.139.241.219 - - [13/Aug/2018:11:46:00 +0200] "GET /apache-log/access.log HTTP/1.1" 206 45800 "http://www.almhuette-raith.at/apache-log/" "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36" "-"
+авг 17 11:51:08 localhost.localdomain bash[21028]: 14.139.241.219 - - [13/Aug/2018:11:46:00 +0200] "GET /apache-log/access.log HTTP/1.1" 206 45800 "http://www.almhuette-raith.at/apache-log/" "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36" "-"
+авг 17 11:51:08 localhost.localdomain bash[21028]: 14.139.241.219 - - [13/Aug/2018:11:46:00 +0200] "GET /apache-log/access.log HTTP/1.1" 206 64128 "http://www.almhuette-raith.at/apache-log/" "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36" "-"
+авг 17 11:51:08 localhost.localdomain systemd[1]: Started logwatch.
+авг 17 11:51:08 localhost.localdomain bash[21028]: 14.139.241.219 - - [13/Aug/2018:11:46:00 +0200] "GET /apache-log/access.log HTTP/1.1" 206 15432 "http://www.almhuette-raith.at/apache-log/" "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36" "-"
+авг 17 11:51:08 localhost.localdomain bash[21028]: 14.139.241.219 - - [13/Aug/2018:11:46:00 +0200] "GET /apache-log/access.log HTTP/1.1" 206 15432 "http://www.almhuette-raith.at/apache-log/" "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36" "-"
+авг 17 11:51:08 localhost.localdomain bash[21028]: 14.139.241.219 - - [13/Aug/2018:11:46:00 +0200] "GET /apache-log/access.log HTTP/1.1" 206 15432 "http://www.almhuette-raith.at/apache-log/" "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36" "-"
+[root@localhost ~]# systemctl -l status logwatch
 
 
 
