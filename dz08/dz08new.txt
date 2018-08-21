@@ -1,5 +1,5 @@
-Домашнее задание 08 ("Доработанный скрипт" для nice и ionice)
-работаем с процессами
+Р”РѕРјР°С€РЅРµРµ Р·Р°РґР°РЅРёРµ 08 ("Р”РѕСЂР°Р±РѕС‚Р°РЅРЅС‹Р№ СЃРєСЂРёРїС‚" РґР»СЏ nice Рё ionice)
+СЂР°Р±РѕС‚Р°РµРј СЃ РїСЂРѕС†РµСЃСЃР°РјРё
 
 [root@localhost ~]# cat nice.sh
 #!/usr/bin/env bash
@@ -21,7 +21,7 @@ echo finished `date`
 [root@localhost ~]# bash nice.sh 
 
 [root@localhost ~]# cat script_01nice.log script_02nice.log
-started Вт авг 21 09:03:59 MSK 2018
-finished Вт авг 21 09:04:43 MSK 2018
-started Вт авг 21 09:03:59 MSK 2018
-finished Вт авг 21 09:04:21 MSK 2018
+started Р’С‚ Р°РІРі 21 09:03:59 MSK 2018
+finished Р’С‚ Р°РІРі 21 09:04:43 MSK 2018
+started Р’С‚ Р°РІРі 21 09:03:59 MSK 2018
+finished Р’С‚ Р°РІРі 21 09:04:21 MSK 2018
