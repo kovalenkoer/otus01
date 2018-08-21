@@ -1,0 +1,27 @@
+Домашнее задание 08 ("Доработанный скрипт" для nice и ionice)
+работаем с процессами
+
+[root@localhost ~]# cat nice.sh
+#!/usr/bin/env bash
+script_01nice.sh > script_01nice.log &
+script_02nice.sh > script_02nice.log &
+
+[root@localhost ~]# cat script_01nice.sh
+#!/usr/bin/env bash
+echo started `date`
+nice -n 19 zip -r /tmp/nice01.zip /etc/httpd/logs
+echo finished `date`
+
+[root@localhost ~]# cat script_02nice.sh
+#!/usr/bin/env bash
+echo started `date`
+nice -n -20 ionice -c2 zip -r /tmp/nice.zip /etc/httpd/logs
+echo finished `date`
+
+[root@localhost ~]# bash nice.sh 
+
+[root@localhost ~]# cat script_01nice.log script_02nice.log
+started Вт авг 21 09:03:59 MSK 2018
+finished Вт авг 21 09:04:43 MSK 2018
+started Вт авг 21 09:03:59 MSK 2018
+finished Вт авг 21 09:04:21 MSK 2018
