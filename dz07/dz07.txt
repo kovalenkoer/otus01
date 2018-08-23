@@ -1,0 +1,230 @@
+﻿
+Домашнее задание 08
+Размещаем свой RPM в своем репозитории
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+1) создать свой RPM (можно взять свое приложение, либо собрать к примеру апач с определенными опциями) 
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+# Устанавливаем все необходимое для сборки и компиляции:
+[root@localhost ~]# yum groupinstall -y "Development Tools" && yum install rpmdevtools nano yum-utils
+[root@localhost ~]# yum update -y
+
+
+[root@localhost ~]# rpmdev-setuptree
+[root@localhost ~]# ls rpmbuild/
+BUILD  BUILDROOT  RPMS  SOURCES  SPECS  SRPMS
+
+vi /etc/yum.repos.d/nginx.repo
+Копируем в файл следующие строки:
+
+[nginx]
+name=nginx repo
+baseurl=http://nginx.org/packages/mainline/centos/7/$basearch/
+gpgcheck=0
+enabled=1
+
+[nginx-source]
+name=nginx source repo
+baseurl=http://nginx.org/packages/mainline/centos/7/SRPMS/
+gpgcheck=1
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+
+Загружаем пакет с исходниками и запускаем установку rmp:
+[root@localhost ~]# cd /tmp
+[root@localhost tmp]# yumdownloader --source nginx
+[root@localhost tmp]# rpm -Uvh nginx*.src.rpm
+
+Установим все необходимые для сборки Nginx зависимости:
+
+[root@localhost tmp]# yum-builddep nginx
+
+Скачиваем и распаковываем исходники OpenSSL:
+
+[root@localhost tmp]# cd /usr/src/
+[root@localhost src]# yum install wget
+[root@localhost src]# wget https://www.openssl.org/openssl-1.1.0i.tar.gz
+[root@localhost src]# tar -xvzf openssl-1.1.0i.tar.gz
+
+Добавим поддержку openssl (--with-openssl=/usr/src/openssl-1.1.0i)
+
+%define BASE_CONFIGURE_ARGS $(echo "--prefix=%{_sysconfdir}/nginx --sbin-path=%{_sbindir}/nginx --modules-path=%{_libdir}/nginx/modules --conf-path=%{_sysconfdir}/nginx/nginx.conf --error-log-path=%{_localstatedir}/log/nginx/error.log --http-log-path=%{_localstatedir}/log/nginx/access.log --pid-path=%{_localstatedir}/run/nginx.pid --lock-path=%{_localstatedir}/run/nginx.lock --http-client-body-temp-path=%{_localstatedir}/cache/nginx/client_temp --http-proxy-temp-path=%{_localstatedir}/cache/nginx/proxy_temp --http-fastcgi-temp-path=%{_localstatedir}/cache/nginx/fastcgi_temp --http-uwsgi-temp-path=%{_localstatedir}/cache/nginx/uwsgi_temp --http-scgi-temp-path=%{_localstatedir}/cache/nginx/scgi_temp --user=%{nginx_user} --group=%{nginx_group} --with-compat --with-file-aio --with-threads --with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_secure_link_module --with-http_slice_module --with-http_ssl_module --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-mail --with-mail_ssl_module --with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module --with-openssl=/usr/src/openssl-1.1.0i")
+
+Запускаем сборку пакета:
+[root@localhost src]# cd ~/rpmbuild/SPECS/
+[root@localhost SPECS]# rpmbuild -ba nginx.spec
+
+По завершении имеем:
+
+imit 110000000 /root/rpmbuild/BUILD/nginx-1.15.2
+extracting debug info from /root/rpmbuild/BUILDROOT/nginx-1.15.2-1.el7_4.ngx.x86_64/usr/sbin/nginx
+extracting debug info from /root/rpmbuild/BUILDROOT/nginx-1.15.2-1.el7_4.ngx.x86_64/usr/sbin/nginx-debug
+/usr/lib/rpm/sepdebugcrcfix: Updated 2 CRC32s, 0 CRC32s did match.
+9149 blocks
++ '[' '%{buildarch}' = noarch ']'
++ QA_CHECK_RPATHS=1
++ case "${QA_CHECK_RPATHS:-}" in
++ /usr/lib/rpm/check-rpaths
++ /usr/lib/rpm/check-buildroot
++ /usr/lib/rpm/redhat/brp-compress
++ /usr/lib/rpm/redhat/brp-strip-static-archive /usr/bin/strip
++ /usr/lib/rpm/brp-python-bytecompile /usr/bin/python 1
++ /usr/lib/rpm/redhat/brp-python-hardlink
++ /usr/lib/rpm/redhat/brp-java-repack-jars
+Processing files: nginx-1.15.2-1.el7_4.ngx.x86_64
+Provides: config(nginx) = 1:1.15.2-1.el7_4.ngx nginx = 1:1.15.2-1.el7_4.ngx nginx(x86-64) = 1:1.15.2-1.el7_4.ngx                                                                                                                              webserver
+Requires(interp): /bin/sh /bin/sh /bin/sh /bin/sh
+Requires(rpmlib): rpmlib(CompressedFileNames) <= 3.0.4-1 rpmlib(FileDigests) <= 4.6.0-1 rpmlib(PayloadFilesHaveP                                                                                                                             refix) <= 4.0-1
+Requires(pre): /bin/sh shadow-utils
+Requires(post): /bin/sh
+Requires(preun): /bin/sh
+Requires(postun): /bin/sh
+Requires: /bin/sh libc.so.6()(64bit) libc.so.6(GLIBC_2.10)(64bit) libc.so.6(GLIBC_2.14)(64bit) libc.so.6(GLIBC_2                                                                                                                             .17)(64bit) libc.so.6(GLIBC_2.2.5)(64bit) libc.so.6(GLIBC_2.3)(64bit) libc.so.6(GLIBC_2.3.2)(64bit) libc.so.6(GL                                                                                                                             IBC_2.3.4)(64bit) libc.so.6(GLIBC_2.4)(64bit) libc.so.6(GLIBC_2.7)(64bit) libcrypt.so.1()(64bit) libcrypt.so.1(G                                                                                                                             LIBC_2.2.5)(64bit) libdl.so.2()(64bit) libdl.so.2(GLIBC_2.2.5)(64bit) libpcre.so.1()(64bit) libpthread.so.0()(64                                                                                                                             bit) libpthread.so.0(GLIBC_2.2.5)(64bit) libpthread.so.0(GLIBC_2.3.2)(64bit) libz.so.1()(64bit) rtld(GNU_HASH)
+Processing files: nginx-debuginfo-1.15.2-1.el7_4.ngx.x86_64
+Provides: nginx-debuginfo = 1:1.15.2-1.el7_4.ngx nginx-debuginfo(x86-64) = 1:1.15.2-1.el7_4.ngx
+Requires(rpmlib): rpmlib(FileDigests) <= 4.6.0-1 rpmlib(PayloadFilesHavePrefix) <= 4.0-1 rpmlib(CompressedFileNa                                                                                                                             mes) <= 3.0.4-1
+Проверка на неупакованный(е) файл(ы): /usr/lib/rpm/check-files /root/rpmbuild/BUILDROOT/nginx-1.15.2-1.el7_4.ngx                                                                                                                             .x86_64
+Записан: /root/rpmbuild/SRPMS/nginx-1.15.2-1.el7_4.ngx.src.rpm
+Записан: /root/rpmbuild/RPMS/x86_64/nginx-1.15.2-1.el7_4.ngx.x86_64.rpm
+Записан: /root/rpmbuild/RPMS/x86_64/nginx-debuginfo-1.15.2-1.el7_4.ngx.x86_64.rpm
+Выполняется(%clean): /bin/sh -e /var/tmp/rpm-tmp.mmvPVs
++ umask 022
++ cd /root/rpmbuild/BUILD
++ cd nginx-1.15.2
++ /usr/bin/rm -rf /root/rpmbuild/BUILDROOT/nginx-1.15.2-1.el7_4.ngx.x86_64
++ exit 0
+
+
+[root@localhost ~]# yum install /root/rpmbuild/RPMS/x86_64/nginx-1.15.2-1.el7_4.ngx.x86_64.rpm
+
+
+Разрешение зависимостей
+--> Проверка сценария
+---> Пакет nginx.x86_64 1:1.15.2-1.el7_4.ngx помечен для установки
+--> Проверка зависимостей окончена
+
+Зависимости определены
+
+================================================================================
+ Package
+        Архитектура
+                Версия                  Репозиторий                       Размер
+================================================================================
+Установка:
+ nginx  x86_64  1:1.15.2-1.el7_4.ngx    /nginx-1.15.2-1.el7_4.ngx.x86_64  8.2 M
+
+Итого за операцию
+================================================================================
+Установить  1 пакет
+
+Общий размер: 8.2 M
+Объем изменений: 8.2 M
+Is this ok [y/d/N]: y
+Downloading packages:
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Установка   : 1:nginx-1.15.2-1.el7_4.ngx.x86_64                           1/1
+----------------------------------------------------------------------
+
+Thanks for using nginx!
+
+Please find the official documentation for nginx here:
+* http://nginx.org/en/docs/
+
+Please subscribe to nginx-announce mailing list to get
+the most important news about nginx:
+* http://nginx.org/en/support.html
+
+Commercial subscriptions for nginx are available on:
+* http://nginx.com/products/
+
+----------------------------------------------------------------------
+  Проверка    : 1:nginx-1.15.2-1.el7_4.ngx.x86_64                           1/1
+
+Установлено:
+  nginx.x86_64 1:1.15.2-1.el7_4.ngx
+
+Выполнено!
+
+-----------------------------------------------------------------------------------------------------------------------
+2) создать свой репо и разместить там свой RPM
+реализовать это все либо в вагранте, либо развернуть у себя через nginx и дать ссылку на репо
+-----------------------------------------------------------------------------------------------------------------------
+
+[root@localhost ~]# yum install createrepo
+
+createrepo /var/www/html/repos/centos/7
+
+[root@localhost ~]# mkdir -p /var/www/html/repos/centos/7/
+[root@localhost ~]# cp /root/rpmbuild/RPMS/x86_64/* /usr/share/nginx/html/
+[root@localhost ~]# createrepo /usr/share/nginx/html/
+[root@localhost ~]# vi /etc/yum.repos.d/nlr.repo
+
+[nlr]
+name=NLR
+failovermethod=priority
+baseurl=https://192.168.113.209/
+enabled=1
+gpgcheck=0
+
+[root@localhost ~]# systemctl restart nginx
+
+[root@localhost ~]# yum repolist all
+Загружены модули: fastestmirror
+Сброс источников:base epel extras nginx nlr updates
+Cleaning up everything
+Maybe you want: rm -rf /var/cache/yum, to also free up space taken by orphaned data from disabled or removed repos
+Cleaning up list of fastest mirrors
+[root@localhost ~]# yum repolist all
+Загружены модули: fastestmirror
+Determining fastest mirrors
+epel/x86_64/metalink                                                                             |  28 kB  00:00:00
+ * base: mirror.reconn.ru
+ * epel: epel.mirror.srv.magticom.ge
+ * extras: mirror.reconn.ru
+ * updates: mirror.reconn.ru
+base                                                                                                                                                                                                                  | 3.6 kB  00:00:00
+epel                                                                                                                                                                                                                  | 3.2 kB  00:00:00
+extras                                                                                                                                                                                                                | 3.4 kB  00:00:00
+nginx                                                                                                                                                                                                                 | 2.9 kB  00:00:00
+nlr                                                                                                                                                                                                                   | 2.9 kB  00:00:00
+updates                                                                                                                                                                                                               | 3.4 kB  00:00:00
+(1/9): epel/x86_64/group_gz                                                                                                                                                                                           |  88 kB  00:00:01
+(2/9): base/7/x86_64/group_gz                                                                                                                                                                                         | 166 kB  00:00:02
+(3/9): extras/7/x86_64/primary_db                                                                                                                                                                                     | 186 kB  00:00:01
+(4/9): nlr/primary_db                                                                                                                                                                                                 | 3.0 kB  00:00:00
+(5/9): nginx/x86_64/primary_db                                                                                                                                                                                        | 113 kB  00:00:01
+(6/9): epel/x86_64/updateinfo                                                                                                                                                                                         | 934 kB  00:00:04
+(7/9): base/7/x86_64/primary_db                                                                                                                                                                                       | 5.9 MB  00:00:11
+(8/9): epel/x86_64/primary                                                                                                                                                                                            | 3.6 MB  00:00:12
+(9/9): updates/7/x86_64/primary_db                                                                                                                                                                                    | 5.2 MB  00:00:12
+epel                                                                                                                                                                                                                             12657/12657
+Идентификатор репозитория                                                                   репозиторий                                                                                                                      состояние
+...
+base/7/x86_64                                                                               CentOS-7 - Base                                                                                                                  включено:  9 911
+...
+*epel/x86_64                                                                                Extra Packages for Enterprise Linux 7 - x86_64                                                                                   включено: 12 657
+...
+extras/7/x86_64                                                                             CentOS-7 - Extras                                                                                                                включено:    401
+extras-source/7                                                                             CentOS-7 - Extras Sources                                                                                                        отключено
+fasttrack/7/x86_64                                                                          CentOS-7 - fasttrack                                                                                                             отключено
+nginx/x86_64                                                                                nginx repo                                                                                                                       включено:    413
+nginx-source                                                                                nginx source repo                                                                                                                отключено
+nlr                               <<<<<<<<<=========                                        NLR                                                                                                                              включено:      2
+updates/7/x86_64                                                                            CentOS-7 - Updates                                                                                                               включено:  1 308
+updates-source/7                                                                            CentOS-7 - Updates Sources                                                                                                       отключено
+
+[root@localhost ~]# yum --disablerepo=* --enablerepo=nlr list
+Загружены модули: fastestmirror
+Loading mirror speeds from cached hostfile
+Установленные пакеты
+...
+nginx.x86_64                                                                                                         1:1.15.2-1.el7_4.ngx                                                                                           installed
+...
+Доступные пакеты
+nginx-debuginfo.x86_64                                                                                               1:1.15.2-1.el7_4.ngx                                                                                           nlr
+
+
