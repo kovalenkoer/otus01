@@ -1,0 +1,89 @@
+﻿Домашнее задание №10
+
+PAM
+
+1. Запретить всем пользователям, кроме группы admin логин в выходные и праздничные дни
+
+
+Создадим группу onlywd и поместим в нее всех пользователей которым разрешен доступ на сервер.
+[root@localhost ~]# less /etc/group | grep onlywd
+onlywd:x:1004:root,johnsmith,johndoe,admin
+
+[root@localhost ~]# less /etc/group | grep admin
+admin:x:1000:admin,root
+
+#Создадим два скрипта:
+
+[root@localhost ~]# cat adminmembers.sh
+#!/bin/bash
+getent group admin | cut -d: -f4 | sed 's/,/\n/g' > /etc/ssh/sshd.allow
+
+[root@localhost ~]# cat onlywdmembers.sh
+#!/bin/bash
+getent group onlywd | cut -d: -f4 | sed 's/,/\n/g' > /etc/ssh/sshd.allow
+
+#Добавим строку (auth    required       pam_listfile.so onerr=fail item=user sense=allow file=/etc/ssh/sshd.allow) в файл /etc/pam.d/sshd
+
+[root@localhost ~]# cat /etc/pam.d/sshd
+#%PAM-1.0
+auth       required     pam_sepermit.so
+auth       substack     password-auth
+auth       include      postlogin
+auth       required     pam_listfile.so onerr=fail item=user sense=allow file=/etc/ssh/sshd.allow
+# Used with polkit to reauthorize users in remote sessions
+-auth      optional     pam_reauthorize.so prepare
+account    required     pam_nologin.so
+#account    required     pam_time.so
+account    include      password-auth
+password   include      password-auth
+# pam_selinux.so close should be the first session rule
+session    required     pam_selinux.so close
+session    required     pam_loginuid.so
+# pam_selinux.so open should only be followed by sessions to be executed in the user context
+session    required     pam_selinux.so open env_params
+session    required     pam_namespace.so
+session    optional     pam_keyinit.so force revoke
+session    include      password-auth
+session    include      postlogin
+# Used with polkit to reauthorize users in remote sessions
+-session   optional     pam_reauthorize.so prepare
+
+[root@localhost ~]# systemctl restart sshd
+
+#Пропишем в кроне:
+0 0 * * 1-5 /root/onlywdmembers.sh
+1 0 * * 0,6 /root/adminmembers.sh
+
+[root@localhost ~]#  tail -f /var/log/secure
+Aug 29 08:40:26 localhost sshd[23935]: pam_listfile(sshd:auth): Couldn't open /etc/sshd/sshd.allow
+Aug 29 08:40:28 localhost sshd[23935]: Failed password for admin from 192.168.113.72 port 54655 ssh2
+Aug 29 08:44:17 localhost sshd[24179]: Accepted password for root from 192.168.113.72 port 54673 ssh2
+Aug 29 08:44:18 localhost sshd[24179]: pam_unix(sshd:session): session opened for user root by (uid=0)
+Aug 29 08:44:24 localhost sshd[24179]: pam_unix(sshd:session): session closed for user root
+Aug 29 08:44:54 localhost sshd[24235]: Accepted password for admin from 192.168.113.72 port 54674 ssh2
+Aug 29 08:44:55 localhost sshd[24235]: pam_unix(sshd:session): session opened for user admin by (uid=0)
+Aug 29 08:44:59 localhost sshd[24235]: pam_unix(sshd:session): session closed for user admin
+Aug 29 08:45:30 localhost sshd[24281]: pam_listfile(sshd:auth): Refused user johndoe for service sshd
+Aug 29 08:45:31 localhost sshd[24281]: Failed password for johndoe from 192.168.113.72 port 54676 ssh2
+Aug 29 08:46:48 localhost sshd[24281]: pam_listfile(sshd:auth): Refused user johndoe for service sshd
+Aug 29 08:46:50 localhost sshd[24281]: Failed password for johndoe from 192.168.113.72 port 54676 ssh2
+Aug 29 08:47:50 localhost sshd[24432]: Accepted password for admin from 192.168.113.72 port 54712 ssh2
+Aug 29 08:47:52 localhost sshd[24432]: pam_unix(sshd:session): session opened for user admin by (uid=0)
+
+
+2. Дать конкретному пользователю права рута
+[root@localhost ~]# usermod -G wheel johnsmith -a
+
+[johnsmith@localhost ~]$ sudo -l
+Matching Defaults entries for johnsmith on localhost:
+    !visiblepw, always_set_home, match_group_by_gid, env_reset,
+    env_keep="COLORS DISPLAY HOSTNAME HISTSIZE KDEDIR LS_COLORS",
+    env_keep+="MAIL PS1 PS2 QTDIR USERNAME LANG LC_ADDRESS LC_CTYPE",
+    env_keep+="LC_COLLATE LC_IDENTIFICATION LC_MEASUREMENT LC_MESSAGES",
+    env_keep+="LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER LC_TELEPHONE",
+    env_keep+="LC_TIME LC_ALL LANGUAGE LINGUAS _XKB_CHARSET XAUTHORITY",
+    secure_path=/sbin\:/bin\:/usr/sbin\:/usr/bin
+
+User johnsmith may run the following commands on localhost:
+    (ALL) ALL
+
