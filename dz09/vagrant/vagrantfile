@@ -1,0 +1,28 @@
+hosts = [ { name: 'server1', disk1: './server1disk1.vdi'}]
+
+Vagrant.configure("2") do |config|
+
+  config.vm.provider :virtualbox do |vb|
+   vb.customize ["storagectl", :id, "--add", "sata", "--name", "SATA" , "--portcount", 2, "--hostiocache", "on"]
+  end
+
+  hosts.each do |host|
+
+    config.vm.define host[:name] do |node|
+      node.vm.hostname = host[:name]
+      node.vm.box = "centos/7"
+      node.vm.network :public_network
+      node.vm.provider :virtualbox do |vb|
+        vb.name = host[:name]
+        vb.customize ['createhd', '--filename', host[:disk1], '--size', 20 * 1024]
+        vb.customize ['storageattach', :id, '--storagectl', "SATA", '--port', 1, '--device', 0, '--type', 'hdd', '--medium', host[:disk1] ]
+        config.ssh.username = "root"
+        config.ssh.password = "vagrant"
+        config.ssh.insert_key = false
+      end
+    end
+
+  end
+
+end
+
