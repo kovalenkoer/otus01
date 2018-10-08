@@ -1,0 +1,118 @@
+﻿dz11
+Домашнее задание
+LDAP
+1. Установить FreeIPA
+2. Написать playbook для конфигурации клиента
+3*. Настроить авторизацию по ssh-ключам
+
+В git - результирующий playbook
+
+
+1. Установить FreeIPA
+[root@ipa01 ~]# yum -y install update
+[root@ipa01 ~]# yum -y install ipa-server ipa-server-dns bind bind-dyndb-ldap
+[root@ipa01 ~]# ipa-server-install
+----
+Do you want to configure integrated DNS (BIND)? [no]: yes
+Server host name [ipa01.dom.loc]:
+Please confirm the domain name [dom.loc]:
+Please provide a realm name [DOM.LOC]:
+Directory Manager password:vagrant-123
+Password (confirm):vagrant-123
+IPA admin password:vagrant-1234
+Password (confirm):vagrant-1234
+Do you want to configure DNS forwarders? [yes]:
+Do you want to configure these servers as DNS forwarders? [yes]:
+Enter an IP address for a DNS forwarder, or press Enter to skip: 8.8.8.8
+DNS forwarder 8.8.8.8 added. You may add another.
+Enter an IP address for a DNS forwarder, or press Enter to skip: 8.8.4.4
+DNS forwarder 8.8.4.4 added. You may add another.
+Enter an IP address for a DNS forwarder, or press Enter to skip:
+Checking DNS forwarders, please wait ...
+Do you want to search for missing reverse zones? [yes]:
+
+The IPA Master Server will be configured with:
+Hostname:       ipa01.dom.loc
+IP address(es): 192.168.115.210
+Domain name:    dom.loc
+Realm name:     DOM.LOC
+
+BIND DNS server will be configured to serve IPA domain with:
+Forwarders:       8.8.8.8, 8.8.4.4
+Forward policy:   only
+Reverse zone(s):  No reverse zone
+...........
+
+[root@ipa01 ~]# firewall-cmd --permanent --zone=public --add-service={ntp,http,https,ldap,ldaps,kerberos,kpasswd,dns}
+success
+[root@ipa01 ~]# firewall-cmd --permanent --zone=public --add-port=53/tcp
+success
+[root@ipa01 ~]# firewall-cmd --permanent --zone=public --add-port=53/udp
+success
+[root@ipa01 ~]# firewall-cmd --reload
+success
+[root@ipa01 ~]# firewall-cmd --list-all --zone=public
+public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s3
+  sources:
+  services: ssh dhcpv6-client ntp http https ldap ldaps kerberos kpasswd dns
+  ports: 53/tcp 53/udp
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+[root@ipa01 ~]# kinit admin
+Password for admin@DOM.LOC:
+[root@ipa01 ~]# klist
+Ticket cache: KEYRING:persistent:0:0
+Default principal: admin@DOM.LOC
+
+Valid starting       Expires              Service principal
+10/08/2018 06:50:03  10/09/2018 06:49:51  krbtgt/DOM.LOC@DOM.LOC
+[root@ipa01 ~]# ipa user-show --all admin
+  dn: uid=admin,cn=users,cn=accounts,dc=dom,dc=loc
+  User login: admin
+  Last name: Administrator
+  Full name: Administrator
+  Home directory: /home/admin
+  GECOS: Administrator
+  Login shell: /bin/bash
+  Principal alias: admin@DOM.LOC
+  UID: 1041600000
+  GID: 1041600000
+  Account disabled: False
+  Preserved user: False
+  Password: True
+  Member of groups: admins, trust admins
+  Kerberos keys available: True
+  ipauniqueid: a3812328-cae4-11e8-b614-080027ae193d
+  krbextradata: AAKbNLtbcm9vdC9hZG1pbkBET00uTE9DAA==
+  krblastpwdchange: 20181008104235Z
+  krbpasswordexpiration: 20190106104235Z
+  objectclass: top, person, posixaccount, krbprincipalaux, krbticketpolicyaux, inetuser, ipaobject, ipasshuser, ipaSshGroupOfPubKeys
+
+
+
+2. Написать playbook для конфигурации клиента
+[root@ansible01 ansible]# ansible-playbook install-client.yml --limit=ipaclients --ask-pass
+SSH password:
+
+PLAY [Playbook to configure IPA clients with username/password] *****************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] **********************************************************************************************************************************************************************************************************************
+ok: [ipa-cl01]
+
+TASK [Install IPA client package] ***********************************************************************************************************************************************************************************************************
+changed: [ipa-cl01]
+
+PLAY RECAP **********************************************************************************************************************************************************************************************************************************
+ipa-cl01                   : ok=2    changed=1    unreachable=0    failed=0
+
+[root@ansible01 ansible]#
+
+
+

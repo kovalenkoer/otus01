@@ -1,0 +1,9 @@
+---
+# tasks file for ipaclient
+
+- name: Install - Ensure that IPA client packages are installed
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ ipaclient_packages }}"
+

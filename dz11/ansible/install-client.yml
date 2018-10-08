@@ -1,0 +1,11 @@
+---
+- name: Playbook to configure IPA clients with username/password
+  hosts: ipaclients
+  become: true
+
+  tasks:
+  - name: Install IPA client package
+    package:
+      name: ipa-client
+      state: present
+
