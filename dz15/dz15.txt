@@ -1,0 +1,103 @@
+Домашнее задание
+Настройка мониторинга
+Настроить дашборд с 4-мя графиками
+1) память
+2) процессор
+3) диск
+4) сеть
+
+настроить на одной из систем
+- zabbix (использовать screen (комплексный экран))
+- prometheus - grafana
+
+
+[root@zab01 ~]# yum install update
+[root@zab01 ~]# yum install mariadb mariadb-server -y
+[root@zab01 ~]# systemctl start mariadb
+[root@zab01 ~]# systemctl enable mariadb.service
+[root@zab01 ~]# /usr/bin/mysql_secure_installation
+[root@zab01 ~]# rpm -Uvh http://repo.zabbix.com/zabbix/4.0/rhel/7/x86_64/zabbix-release-4.0-1.el7.noarch.rpm
+[root@zab01 ~]# yum install zabbix-server-mysql zabbix-web-mysql -y
+[root@zab01 ~]# mysql -uroot -pvagrant
+   MariaDB [(none)]> create database zabbix character set utf8 collate utf8_bin;
+   MariaDB [(none)]> grant all privileges on zabbix.* to zabbix@localhost identified by 'vagrant';
+   MariaDB [(none)]> exit
+[root@zab01 ~]# zcat /usr/share/doc/zabbix-server-mysql-4.0.0/create.sql.gz | mysql -uroot -pvagrant zabbix
+[root@zab01 ~]# vi /etc/zabbix/zabbix_server.conf
+   DBHost=localhost
+   DBName=zabbix
+   DBUser=zabbix
+   DBPassword=vagrant
+[root@zab01 ~]# systemctl start zabbix-server
+[root@zab01 ~]# systemctl enable zabbix-server
+[root@zab01 ~]# tail /var/log/zabbix/zabbix_server.log
+[root@zab01 ~]# cat /var/log/zabbix/zabbix_server.log
+  2223:20181009:031946.068 Starting Zabbix Server. Zabbix 4.0.0 (revision 85308).
+  2223:20181009:031946.069 ****** Enabled features ******
+  2223:20181009:031946.069 SNMP monitoring:           YES
+  2223:20181009:031946.069 IPMI monitoring:           YES
+  2223:20181009:031946.069 Web monitoring:            YES
+  2223:20181009:031946.069 VMware monitoring:         YES
+  2223:20181009:031946.069 SMTP authentication:       YES
+  2223:20181009:031946.069 Jabber notifications:      YES
+  2223:20181009:031946.069 Ez Texting notifications:  YES
+  2223:20181009:031946.069 ODBC:                      YES
+  2223:20181009:031946.069 SSH2 support:              YES
+  2223:20181009:031946.069 IPv6 support:              YES
+  2223:20181009:031946.069 TLS support:               YES
+  2223:20181009:031946.069 ******************************
+  2223:20181009:031946.070 using configuration file: /etc/zabbix/zabbix_server.conf
+  2223:20181009:031946.099 current database version (mandatory/optional): 04000000/04000000
+  2223:20181009:031946.099 required mandatory version: 04000000
+  2223:20181009:031946.138 server #0 started [main process]
+  2232:20181009:031946.157 server #5 started [housekeeper #1]
+  2228:20181009:031946.159 server #1 started [configuration syncer #1]
+  2229:20181009:031946.159 server #2 started [alerter #1]
+  2230:20181009:031946.160 server #3 started [alerter #2]
+  2231:20181009:031946.161 server #4 started [alerter #3]
+  2233:20181009:031946.162 server #6 started [timer #1]
+  2241:20181009:031946.163 server #14 started [proxy poller #1]
+  2243:20181009:031946.168 server #16 started [task manager #1]
+  2244:20181009:031946.169 server #17 started [poller #1]
+  2242:20181009:031946.179 server #15 started [self-monitoring #1]
+  2238:20181009:031946.180 server #11 started [history syncer #3]
+  2234:20181009:031946.182 server #7 started [http poller #1]
+  2235:20181009:031946.185 server #8 started [discoverer #1]
+  2236:20181009:031946.196 server #9 started [history syncer #1]
+  2237:20181009:031946.199 server #10 started [history syncer #2]
+  2240:20181009:031946.200 server #13 started [escalator #1]
+  2239:20181009:031946.208 server #12 started [history syncer #4]
+  2255:20181009:031946.246 server #20 started [poller #4]
+  2257:20181009:031946.257 server #22 started [unreachable poller #1]
+  2258:20181009:031946.267 server #23 started [trapper #1]
+  2256:20181009:031946.274 server #21 started [poller #5]
+  2253:20181009:031946.284 server #18 started [poller #2]
+  2254:20181009:031946.294 server #19 started [poller #3]
+  2263:20181009:031946.405 server #26 started [trapper #4]
+  2265:20181009:031946.411 server #28 started [icmp pinger #1]
+  2264:20181009:031946.412 server #27 started [trapper #5]
+  2261:20181009:031946.416 server #24 started [trapper #2]
+  2262:20181009:031946.420 server #25 started [trapper #3]
+  2270:20181009:031946.499 server #29 started [alert manager #1]
+  2271:20181009:031946.501 server #30 started [preprocessing manager #1]
+  2272:20181009:031946.598 server #31 started [preprocessing worker #1]
+  2274:20181009:031946.599 server #33 started [preprocessing worker #3]
+  2273:20181009:031946.599 server #32 started [preprocessing worker #2]
+[root@zab01 ~]# vi /etc/httpd/conf.d/zabbix.conf
+   php_value date.timezone Europe/Moscow
+[root@zab01 ~]# systemctl start httpd
+[root@zab01 ~]# systemctl enable httpd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
